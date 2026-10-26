@@ -1,0 +1,35 @@
+{
+  "displayName": "Require a tag on resources",
+  "description": "Requires the specified tag on every taggable resource. Assigned once per mandatory tag.",
+  "mode": "Indexed",
+  "metadata": {
+    "category": "Tags",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "tagName": {
+      "type": "String",
+      "metadata": {
+        "displayName": "Tag name",
+        "description": "Name of the tag that must be present, for example cost-center."
+      }
+    },
+    "effect": {
+      "type": "String",
+      "defaultValue": "Deny",
+      "allowedValues": ["Audit", "Deny", "Disabled"],
+      "metadata": {
+        "displayName": "Effect"
+      }
+    }
+  },
+  "policyRule": {
+    "if": {
+      "field": "[concat('tags[', parameters('tagName'), ']')]",
+      "exists": "false"
+    },
+    "then": {
+      "effect": "[parameters('effect')]"
+    }
+  }
+}

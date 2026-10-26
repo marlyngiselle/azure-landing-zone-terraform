@@ -1,0 +1,48 @@
+{
+  "displayName": "Allowed locations",
+  "description": "Restricts the regions where resources can be deployed. Global resources are exempt.",
+  "mode": "Indexed",
+  "metadata": {
+    "category": "General",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "listOfAllowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "displayName": "Allowed locations",
+        "description": "Regions where resources can be deployed.",
+        "strongType": "location"
+      }
+    },
+    "effect": {
+      "type": "String",
+      "defaultValue": "Deny",
+      "allowedValues": ["Audit", "Deny", "Disabled"],
+      "metadata": {
+        "displayName": "Effect"
+      }
+    }
+  },
+  "policyRule": {
+    "if": {
+      "allOf": [
+        {
+          "field": "location",
+          "notIn": "[parameters('listOfAllowedLocations')]"
+        },
+        {
+          "field": "location",
+          "notEquals": "global"
+        },
+        {
+          "field": "type",
+          "notEquals": "Microsoft.AzureActiveDirectory/b2cDirectories"
+        }
+      ]
+    },
+    "then": {
+      "effect": "[parameters('effect')]"
+    }
+  }
+}

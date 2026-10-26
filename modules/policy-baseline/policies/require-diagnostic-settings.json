@@ -1,0 +1,43 @@
+{
+  "displayName": "Diagnostic settings must send logs to Log Analytics",
+  "description": "Audits resources of the listed types that have no diagnostic setting targeting a Log Analytics workspace.",
+  "mode": "Indexed",
+  "metadata": {
+    "category": "Monitoring",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "resourceTypes": {
+      "type": "Array",
+      "metadata": {
+        "displayName": "Resource types",
+        "description": "Resource types that must have diagnostic settings.",
+        "strongType": "resourceTypes"
+      }
+    },
+    "effect": {
+      "type": "String",
+      "defaultValue": "AuditIfNotExists",
+      "allowedValues": ["AuditIfNotExists", "Disabled"],
+      "metadata": {
+        "displayName": "Effect"
+      }
+    }
+  },
+  "policyRule": {
+    "if": {
+      "field": "type",
+      "in": "[parameters('resourceTypes')]"
+    },
+    "then": {
+      "effect": "[parameters('effect')]",
+      "details": {
+        "type": "Microsoft.Insights/diagnosticSettings",
+        "existenceCondition": {
+          "field": "Microsoft.Insights/diagnosticSettings/workspaceId",
+          "exists": "true"
+        }
+      }
+    }
+  }
+}

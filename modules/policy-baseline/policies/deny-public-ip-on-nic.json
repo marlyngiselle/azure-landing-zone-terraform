@@ -1,0 +1,42 @@
+{
+  "displayName": "Network interfaces must not have a public IP",
+  "description": "Blocks public IP addresses on network interfaces. Ingress goes through the hub (Application Gateway, Front Door or Azure Firewall), never directly to a VM.",
+  "mode": "All",
+  "metadata": {
+    "category": "Network",
+    "version": "1.0.0"
+  },
+  "parameters": {
+    "effect": {
+      "type": "String",
+      "defaultValue": "Deny",
+      "allowedValues": ["Audit", "Deny", "Disabled"],
+      "metadata": {
+        "displayName": "Effect"
+      }
+    }
+  },
+  "policyRule": {
+    "if": {
+      "allOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.Network/networkInterfaces"
+        },
+        {
+          "count": {
+            "field": "Microsoft.Network/networkInterfaces/ipconfigurations[*]",
+            "where": {
+              "field": "Microsoft.Network/networkInterfaces/ipconfigurations[*].publicIpAddress.id",
+              "exists": "true"
+            }
+          },
+          "greater": 0
+        }
+      ]
+    },
+    "then": {
+      "effect": "[parameters('effect')]"
+    }
+  }
+}
