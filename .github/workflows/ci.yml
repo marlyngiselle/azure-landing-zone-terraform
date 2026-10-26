@@ -1,0 +1,102 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TF_VERSION: 1.9.8
+  TFLINT_VERSION: v0.60.0
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  fmt:
+    name: terraform fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+      - run: terraform fmt -check -recursive -diff
+
+  validate:
+    name: validate (${{ matrix.dir }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir:
+          - modules/management
+          - modules/management/modules/diagnostic-settings
+          - modules/hub-network
+          - modules/spoke-network
+          - modules/policy-baseline
+          - modules/subscription-vending
+          - examples/minimal
+          - examples/full
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+      - name: terraform init
+        run: terraform init -backend=false -input=false
+      - name: terraform validate
+        # Modules that declare configuration_aliases cannot be validated as a root
+        # (Terraform requires the caller to pass the aliased provider). They are
+        # validated through the examples and exercised by terraform test below.
+        run: |
+          if grep -q configuration_aliases versions.tf; then
+            echo "Skipping standalone validate: module expects aliased providers from its caller."
+          else
+            terraform validate
+          fi
+      - name: terraform test (mocked providers, no credentials)
+        run: |
+          if [ -d tests ]; then
+            terraform test
+          else
+            echo "No tests for this directory."
+          fi
+
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: ~/.tflint.d/plugins
+          key: tflint-${{ hashFiles('.tflint.hcl') }}
+      - uses: terraform-linters/setup-tflint@6ffdbaa3be476b3431f7275c26966ef32ff60337 # v6.3.2
+        with:
+          tflint_version: ${{ env.TFLINT_VERSION }}
+      - run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - run: tflint --recursive --config "$GITHUB_WORKSPACE/.tflint.hcl" --format compact
+
+  checkov:
+    name: checkov
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: bridgecrewio/checkov-action@c3e106d5f8f4253a6de5110efb41a080f83db294 # v12.3135.0
+        with:
+          directory: .
+          config_file: .checkov.yaml
