@@ -14,3 +14,9 @@ updates:
       - /examples/full
     schedule:
       interval: weekly
+    ignore:
+      # The modules accept azurerm >= 4.40.0, < 5.0.0. A major bump proposed
+      # only in an example root conflicts with that range and terraform init
+      # fails. Moving to azurerm 5 is a deliberate change across every module.
+      - dependency-name: hashicorp/azurerm
+        update-types: ["version-update:semver-major"]
