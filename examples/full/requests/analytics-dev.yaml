@@ -1,0 +1,24 @@
+# Landing zone request: development subscription for the analytics team.
+# No network block: this team only uses PaaS with public endpoints in dev,
+# so no spoke is created and no address space is consumed.
+name: analytics
+environment: dev
+location: northeurope
+subscription_id: 22222222-2222-2222-2222-222222222222
+management_group_id: /providers/Microsoft.Management/managementGroups/contoso-landingzones-online
+owner: team-analytics@contoso.com
+cost_center: cc-5200
+
+resource_groups:
+  - workspace
+
+role_assignments:
+  - principal_id: cccccccc-cccc-cccc-cccc-cccccccccccc   # Entra group: analytics engineers
+    role: Contributor
+    scope: rg:workspace
+
+budget:
+  amount: 800
+  start_date: "2026-11-01T00:00:00Z"
+  contact_emails:
+    - team-analytics@contoso.com

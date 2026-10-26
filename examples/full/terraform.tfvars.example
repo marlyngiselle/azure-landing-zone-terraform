@@ -1,0 +1,3 @@
+platform_subscription_id          = "00000000-0000-0000-0000-000000000000"
+landing_zones_management_group_id = "/providers/Microsoft.Management/managementGroups/contoso-landingzones"
+request_file                      = "requests/payments-prd.yaml"
