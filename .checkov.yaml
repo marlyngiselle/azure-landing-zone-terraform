@@ -1,0 +1,9 @@
+# Shared by CI and pre-commit. Suppressions live next to the resource
+# (checkov:skip comments) so the justification is reviewed with the code.
+framework:
+  - terraform
+compact: true
+quiet: true
+skip-path:
+  - .terraform
+download-external-modules: false

@@ -1,0 +1,34 @@
+# Terraform working directories and state
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+*.tfplan.json
+
+# Variable files may contain environment specific values
+*.tfvars
+*.tfvars.json
+!examples/**/terraform.tfvars.example
+
+# Overrides are local only
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Provider lock files are committed for root configurations only (examples),
+# never for reusable modules.
+modules/**/.terraform.lock.hcl
+
+# CLI configuration and tooling caches
+.terraformrc
+terraform.rc
+.tflint.d/
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
